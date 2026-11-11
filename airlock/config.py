@@ -15,7 +15,7 @@ def load(path=None):
                     continue
                 k, v = line.split("=", 1)
                 conf[k.strip()] = v.strip()
-    for k in list(conf):
-        if k in os.environ and k.startswith("AIRLOCK_"):
-            conf[k] = os.environ[k]
+    for k, v in os.environ.items():
+        if k.startswith("AIRLOCK_"):
+            conf[k] = v
     return conf

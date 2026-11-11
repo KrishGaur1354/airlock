@@ -12,4 +12,4 @@ test:
 eval:
 	python3 -m airlock eval
 enrich:
-	python3 -m airlock build --enrich --gguf $(GGUF) -o out/qwen3.airlock --source $(SOURCE)
+	python3 -m airlock build --enrich --gguf $(GGUF) -o out/qwen3.airlock --source "$(SOURCE)"

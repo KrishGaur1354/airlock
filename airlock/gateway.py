@@ -1,9 +1,12 @@
 """Gateway: API-key auth, hash-chained audit, local inference proxy, evidence + exports, dashboard.
 stdlib http.server + ThreadingMixIn. High side: must not import vendor modules or read vendor secrets."""
+import http.client
 import json
 import mimetypes
 import os
 import re
+import socket
+import socketserver
 import threading
 import time
 import urllib.error
@@ -57,8 +60,15 @@ class Gateway(object):
             url = "http://127.0.0.1:8080/v1/chat/completions"
             body = {"model": self.model, "messages": msgs, "max_tokens": num_predict, "temperature": 0.2}
         req = urllib.request.Request(url, json.dumps(body).encode(), {"Content-Type": "application/json"})
-        with urllib.request.urlopen(req, timeout=120) as r:
-            d = json.loads(r.read().decode())
+        for attempt in (1, 2):  # one retry: the unix-socket relay can drop the very first connection
+            try:
+                with urllib.request.urlopen(req, timeout=120) as r:
+                    d = json.loads(r.read().decode())
+                break
+            except (ConnectionError, http.client.HTTPException, urllib.error.URLError):
+                if attempt == 2:
+                    raise
+                time.sleep(0.5)
         text = d["message"]["content"] if self.backend == "ollama" else d["choices"][0]["message"]["content"]
         return _THINK.sub("", text).strip()
 
@@ -188,6 +198,20 @@ class Server(ThreadingMixIn, HTTPServer):
     allow_reuse_address = True
 
 
+class UnixServer(ThreadingMixIn, HTTPServer):
+    """HTTP over a unix socket (mode 0600): reachable only by the owning user, no network interface needed."""
+    address_family = socket.AF_UNIX
+    daemon_threads = True
+
+    def server_bind(self):
+        path = self.server_address
+        if os.path.exists(path):
+            os.unlink(path)
+        socketserver.TCPServer.server_bind(self)
+        os.chmod(path, 0o600)
+        self.server_name, self.server_port = "airlock", 0
+
+
 def serve(conf=None):
     global GW
     GW = Gateway(conf)
@@ -197,8 +221,13 @@ def serve(conf=None):
         print("warning: AIRLOCK_API_KEY not set; every chat request will be refused (401)")
     print("pre-warming %s via %s ..." % (GW.model, GW.backend))
     print("  model warm: %s" % GW.prewarm())
-    srv = Server((host, port), Handler)
-    print("Airlock gateway on http://%s:%d/  (dashboard at /)" % (host, port))
+    sock = GW.conf.get("AIRLOCK_SOCKET")
+    if sock:
+        srv = UnixServer(sock, Handler)
+        print("Airlock gateway on unix socket %s  (dashboard at /)" % sock)
+    else:
+        srv = Server((host, port), Handler)
+        print("Airlock gateway on http://%s:%d/  (dashboard at /)" % (host, port))
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

@@ -124,7 +124,7 @@ def main(argv=None):
     s.add_argument("--target", default="jetson-orin-nano"); s.add_argument("--name", default="qwen3-airlock")
     s.add_argument("--version", default="0.1.0"); s.add_argument("--family", default="qwen3")
     s.add_argument("--params", default="1.7b"); s.add_argument("--quant", default=None)
-    s.add_argument("--license", default="apache-2.0"); s.add_argument("--source", default="unknown")
+    s.add_argument("--license", default="apache-2.0"); s.add_argument("--source", required=True, help="real origin, e.g. hf://org/repo/file.gguf or ollama:qwen3:1.7b")
     s.add_argument("--enrich", action="store_true", help="low side: add vendor-generated controls/evals/model card")
     s.set_defaults(fn=cmd_build)
     s = sub.add_parser("verify"); s.add_argument("bundle"); s.set_defaults(fn=cmd_verify)

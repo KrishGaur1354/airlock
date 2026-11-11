@@ -77,7 +77,7 @@ python3 -m airlock build \
     --params "${AIRLOCK_PARAMS:-1.7b}" \
     --quant "${AIRLOCK_QUANT:-Q4_K_M}" \
     --license "${AIRLOCK_LICENSE:-apache-2.0}" \
-    --source "${AIRLOCK_SOURCE:-ollama:qwen3:1.7b}"
+    --source "${AIRLOCK_SOURCE:-hf://unsloth/Qwen3-1.7B-GGUF/Qwen3-1.7B-Q4_K_M.gguf}"
 ok "bundle built and signed"
 
 # ---------------------------------------------------------------- 3. verify
@@ -94,8 +94,7 @@ ok "bundle imported"
 step "5/7  evidence - controls, SSP, POA&M, OSCAL-shaped results"
 if [ "${AIRLOCK_SKIP_EVAL:-0}" != "1" ]; then
     note "running the adversarial prompt-injection suite (AI-EVAL) against the local model"
-    if python3 -m airlock.evals --backend "${AIRLOCK_BACKEND:-ollama}" \
-            --model "${AIRLOCK_MODEL:-$NAME}" --redact > "$ROOT/out/eval.log" 2>&1; then
+    if python3 -m airlock eval > "$ROOT/out/eval.log" 2>&1; then
         sed 's/^/    /' "$ROOT/out/eval.log"
         ok "injection suite measured and written to out/eval.json"
     else

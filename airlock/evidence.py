@@ -3,6 +3,8 @@ import json
 import os
 import threading
 import time
+import http.client
+import socket
 import urllib.error
 import urllib.request
 
@@ -56,12 +58,33 @@ def _ollama_ps(model):
     return None
 
 
+def _interfaces():
+    """Network interfaces visible to THIS process (inside a network namespace it is only 'lo')."""
+    try:
+        with open("/proc/net/dev") as f:
+            return sorted(l.split(":")[0].strip() for l in f.readlines()[2:])
+    except IOError:
+        return []
+
+
+class _UnixConn(http.client.HTTPConnection):
+    def __init__(self, path):
+        http.client.HTTPConnection.__init__(self, "localhost", timeout=5)
+        self._path = path
+
+    def connect(self):
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.settimeout(5)
+        self.sock.connect(self._path)
+
+
 def collect_all(gateway=None):
     state = bundle.load_state()
     man = (state or {}).get("manifest") or {}
     checks = (state or {}).get("checks") or []
     dev = bundle._device_facts()
     res = []
+    gaps = []
     inst = _installed_dir(state)
 
     # SI-7: result of the verification performed at import time (signature + every artifact hash)
@@ -140,9 +163,19 @@ def collect_all(gateway=None):
     if not gateway:
         res.append(_r("SC-7", "unknown", "probe requires running gateway", ["/probe"]))
     else:
+        ifaces = _interfaces()
+        isolated = ifaces == ["lo"]
         res.append(_r("SC-7", "pass" if probe["egress"] == "blocked" and works else "fail",
-                      "egress %s (%s); local inference %s" % (probe["egress"], probe["detail"][:80], "works" if works else "FAILED"),
-                      ["/probe", "local inference"]))
+                      "scope: the gateway process that handles prompts and data. Network interfaces visible to it: %s%s; "
+                      "egress %s (%s); local inference %s" % (
+                          ", ".join(ifaces) or "unknown", " (network namespace)" if isolated else "",
+                          probe["egress"], probe["detail"][:70], "works" if works else "FAILED"),
+                      ["/probe", "/proc/net/dev", "local inference"]))
+        if isolated and gateway.backend == "ollama":
+            gaps.append({"control": "SC-7",
+                         "weakness": "The inference engine (Ollama) runs on the host network, outside the network-less namespace; "
+                                     "only the gateway is isolated and it reaches Ollama through a unix-socket relay.",
+                         "remediation": "Run Ollama inside the same network namespace, or enforce a host network policy that denies its egress."})
 
     # AU-2 / AU-9
     ap = os.path.join(OUT, "audit.jsonl")
@@ -163,10 +196,18 @@ def collect_all(gateway=None):
     ac = ("unknown", "gateway not running")
     if gateway:
         port = int(gateway.conf.get("AIRLOCK_PORT", "8000"))
+        sock = gateway.conf.get("AIRLOCK_SOCKET")
         try:
-            req = urllib.request.Request("http://127.0.0.1:%d/v1/chat" % port, b'{"message":"x"}', {"Content-Type": "application/json"})
-            urllib.request.urlopen(req, timeout=5)
-            ac = ("fail", "unauthenticated request was ACCEPTED")
+            if sock:
+                conn = _UnixConn(sock)
+                conn.request("POST", "/v1/chat", b'{"message":"x"}', {"Content-Type": "application/json"})
+                code = conn.getresponse().status
+                conn.close()
+            else:
+                req = urllib.request.Request("http://127.0.0.1:%d/v1/chat" % port, b'{"message":"x"}', {"Content-Type": "application/json"})
+                urllib.request.urlopen(req, timeout=5)
+                code = 200
+            ac = ("pass", "unauthenticated request got HTTP 401") if code == 401 else ("fail", "got HTTP %d, expected 401" % code)
         except urllib.error.HTTPError as e:
             ac = ("pass", "unauthenticated request got HTTP %d" % e.code) if e.code == 401 else ("fail", "got HTTP %d, expected 401" % e.code)
         except Exception as e:
@@ -197,6 +238,7 @@ def collect_all(gateway=None):
                    "ram_mb": int((dev["ram_gb"] or 0) * 1024),
                    "backend": gateway.backend if gateway else None, "model": model_name},
         "controls": res,
+        "gaps": gaps,
         "audit": audit.summary(ap) if os.path.exists(ap) else {"ok": False, "entries": 0, "tail": []},
         "summary": {"satisfied": sat, "total": len(res), "si7_failed": si7},
     }
