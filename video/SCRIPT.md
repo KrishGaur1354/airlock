@@ -1,5 +1,8 @@
 # Airlock: 90-second voiceover script (synced to `out/airlock-demo-90s.mp4`)
 
+**▶ [Watch the video (90 s, silent)](https://github.com/KrishGaur1354/airlock/raw/main/video/demo/airlock-demo-90s.mp4)**
+On a phone, open it in the browser and read the cues below while it plays.
+
 The words are the locked lines from `voiceover.md`. The timecodes are the real
 frames of the rendered cut, so you can drop the audio straight onto the video.
 About 190 words. Record in one take per block, with a short pause between blocks.
