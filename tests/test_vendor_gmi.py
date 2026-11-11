@@ -218,6 +218,12 @@ class IsolationTest(unittest.TestCase):
                 continue
             with open(os.path.join(airlock_dir, name)) as f:
                 text = f.read()
+            if name == "cli.py":
+                # the one allowed consumer: `build --enrich`, imported lazily inside a function
+                for line in text.splitlines():
+                    if "vendor_gmi" in line and "import" in line:
+                        self.assertTrue(line.startswith("        "), "cli.py must import vendor_gmi lazily: " + line)
+                continue
             self.assertNotIn("vendor_gmi", text, name)
 
 

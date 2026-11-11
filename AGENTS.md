@@ -19,7 +19,7 @@ Jetson Orin Nano (R36.4.3), aarch64, Python 3.10.12. Model `qwen3:1.7b` via Olla
 Prepend `/no_think` to the system prompt for Qwen3 only (omit for Qwen2.5). Gateway :8000. Config: airlock.conf (KEY=VALUE, hand-parsed).
 
 ## Layout
-airlock/{cli,bundle,signing,sbom,scan,gateway,audit,evidence,controls,oscal,report,evals,vendor_gmi}.py
+airlock/{cli,bundle,signing,sbom,scan,gateway,audit,evidence,controls,oscal,report,evals,redact,vendor_gmi}.py  (redact = stdlib output-boundary filter used by gateway)
 templates/ dashboard/ data/memo.txt evals/injection.jsonl scripts/{tamper.py,demo.sh} keys/ out/ lowside/cache/
 
 ## Bundle (*.airlock = tar)
