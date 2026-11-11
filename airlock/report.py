@@ -104,6 +104,9 @@ def statements_from_controls(controls_json):
 def _control_rows(evidence, statements=None):
     """Return [(control_result, statement_text)] for every control in the evidence."""
     statements = statements or {}
+    if isinstance(statements, dict) and "controls" in statements:
+        # the whole controls.json blob shipped inside the bundle was passed in
+        statements = statements_from_controls(statements)
     rows = []
     for c in (evidence or {}).get("controls", []):
         if not isinstance(c, dict):
