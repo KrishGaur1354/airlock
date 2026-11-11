@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Airlock &middot; Accreditation Evidence</title>
+<style>
+:root {
+  --bg: #0b0e14;
+  --panel: #121722;
+  --panel2: #171d2a;
+  --line: #232c3d;
+  --fg: #dbe3f0;
+  --dim: #8794ab;
+  --green: #2ecc8f;
+  --red: #ff5c5c;
+  --amber: #f2b544;
+  --blue: #5aa9ff;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: radial-gradient(1200px 700px at 20% -10%, #16203a 0%, var(--bg) 55%) fixed;
+  color: var(--fg);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
+  padding: 0 0 48px;
+}
+a { color: var(--blue); }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 0 22px; }
+header.top {
+  border-bottom: 1px solid var(--line);
+  background: rgba(11, 14, 20, 0.82);
+  backdrop-filter: blur(6px);
+  position: sticky; top: 0; z-index: 20;
+}
+.top-in { display: flex; align-items: center; gap: 16px; padding: 14px 0; }
+.logo {
+  width: 34px; height: 34px; border-radius: 9px; flex: none;
+  background: linear-gradient(140deg, #2ecc8f, #1f7ae0);
+  display: grid; place-items: center;
+  font-weight: 800; font-size: 15px; color: #06121c;
+}
+h1 { font-size: 17px; margin: 0; letter-spacing: 0.2px; }
+.sub { color: var(--dim); font-size: 12px; margin: 1px 0 0; }
+.spacer { flex: 1; }
+.pill {
+  display: inline-block; padding: 3px 10px; border-radius: 999px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.pill.pass { background: rgba(46, 204, 143, 0.14); color: var(--green); border-color: rgba(46, 204, 143, 0.35); }
+.pill.fail { background: rgba(255, 92, 92, 0.14); color: var(--red); border-color: rgba(255, 92, 92, 0.4); }
+.pill.unknown { background: rgba(242, 181, 68, 0.13); color: var(--amber); border-color: rgba(242, 181, 68, 0.35); }
+.pill.info { background: rgba(90, 169, 255, 0.12); color: var(--blue); border-color: rgba(90, 169, 255, 0.3); }
+.live { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--dim); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px var(--green); }
+.dot.stale { background: var(--amber); box-shadow: 0 0 8px var(--amber); }
+.dot.down { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+.banner {
+  margin: 22px 0 18px; padding: 20px 24px; border-radius: 14px;
+  border: 1px solid rgba(46, 204, 143, 0.35);
+  background: linear-gradient(120deg, rgba(46, 204, 143, 0.16), rgba(46, 204, 143, 0.03));
+  display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+}
+.banner.bad { border-color: rgba(255, 92, 92, 0.45); background: linear-gradient(120deg, rgba(255, 92, 92, 0.18), rgba(255, 92, 92, 0.04)); }
+.banner .big { font-size: 26px; font-weight: 800; letter-spacing: 0.4px; }
+.banner.good .big { color: var(--green); }
+.banner.bad .big { color: var(--red); }
+.banner .txt { color: var(--dim); font-size: 13px; }
+.banner .spacer { flex: 1; }
+.badge-row { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.cols { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 18px; align-items: start; }
+@media (max-width: 1000px) { .cols { grid-template-columns: 1fr; } }
+.panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; margin-bottom: 18px;
+}
+.panel h2 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; color: var(--dim);
+  margin: 0 0 12px; display: flex; align-items: center; gap: 8px;
+}
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); gap: 12px; }
+.card {
+  background: var(--panel2); border: 1px solid var(--line); border-left: 3px solid var(--line);
+  border-radius: 11px; padding: 12px 13px;
+}
+.card.s-pass { border-left-color: var(--green); }
+.card.s-fail { border-left-color: var(--red); }
+.card.s-unknown { border-left-color: var(--amber); }
+.card .row1 { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.card .cid { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--fg); }
+.card .ctitle { font-size: 12px; color: var(--dim); margin: 0 0 7px; }
+.card .detail { font-size: 12px; color: #b6c2d6; margin: 0 0 8px; }
+.card ul { margin: 0; padding-left: 16px; }
+.card li { font-size: 11.5px; color: var(--dim); margin-bottom: 3px; word-break: break-word; }
+.card .obs { font-family: var(--mono); font-size: 10.5px; color: #63708a; margin-top: 8px; }
+.kv { display: grid; grid-template-columns: 108px 1fr; gap: 5px 10px; font-size: 12.5px; }
+.kv dt { color: var(--dim); }
+.kv dd { margin: 0; font-family: var(--mono); font-size: 11.5px; word-break: break-all; }
+.hashes { font-family: var(--mono); font-size: 10.5px; color: var(--dim); }
+.hashes div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
+button, .btn {
+  background: var(--panel2); color: var(--fg); border: 1px solid var(--line);
+  border-radius: 9px; padding: 8px 12px; font-size: 12.5px; font-family: inherit;
+  cursor: pointer; text-decoration: none; display: inline-block;
+}
+button:hover, .btn:hover { border-color: var(--blue); color: #fff; }
+button.primary { background: rgba(90, 169, 255, 0.14); border-color: rgba(90, 169, 255, 0.4); color: #cfe6ff; }
+input, textarea {
+  width: 100%; background: #0d1119; color: var(--fg); border: 1px solid var(--line);
+  border-radius: 9px; padding: 9px 11px; font-family: inherit; font-size: 13px; resize: vertical;
+}
+input:focus, textarea:focus { outline: none; border-color: var(--blue); }
+label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: var(--dim); margin: 0 0 5px; }
+.field { margin-bottom: 10px; }
+.reply {
+  margin-top: 10px; padding: 10px 12px; border-radius: 9px; background: #0d1119;
+  border: 1px solid var(--line); font-size: 13px; white-space: pre-wrap; word-break: break-word; min-height: 22px;
+}
+.reply.err { border-color: rgba(255, 92, 92, 0.5); color: #ffb3b3; }
+.err-box { color: var(--red); font-size: 12.5px; }
+.muted { color: var(--dim); }
+footer.foot { color: #5d6a83; font-size: 11.5px; text-align: center; margin-top: 26px; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-in">
+    <div class="logo">A</div>
+    <div>
+      <h1>Airlock <span class="muted" style="font-weight:400">&middot; signed offline AI bundles</span></h1>
+      <p class="sub">self-assessed NIST SP 800-53 accreditation evidence &middot; OSCAL-shaped</p>
+    </div>
+    <div class="spacer"></div>
+    <div class="live"><span class="dot" id="live-dot"></span><span id="live-text">connecting&hellip;</span></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="banner good" id="banner">
+    <div>
+      <div class="big" id="banner-title">ACCREDITATION EVIDENCE: &mdash;/&mdash; controls satisfied</div>
+      <div class="txt" id="banner-sub">waiting for the evidence collector&hellip;</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="badge-row" id="banner-badges"></div>
+  </div>
+
+  <div class="cols">
+    <div>
+      <div class="panel">
+        <h2>Control results <span class="pill info" id="ctrl-count">&mdash;</span></h2>
+        <div class="grid" id="controls"></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel">
+        <h2>Deployment target</h2>
+        <dl class="kv" id="device"></dl>
+      </div>
+
+      <div class="panel">
+        <h2>Audit chain</h2>
+        <dl class="kv" id="audit"></dl>
+        <div class="hashes" id="audit-tail" style="margin-top:9px"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Accreditation exports</h2>
+        <div class="btnrow">
+          <a class="btn" href="/export/ssp.html" target="_blank" rel="noopener">SSP &middot; html</a>
+          <a class="btn" href="/export/poam.html" target="_blank" rel="noopener">POA&amp;M &middot; html</a>
+          <a class="btn" href="/export/assessment-results.json" target="_blank" rel="noopener">assessment-results &middot; json</a>
+        </div>
+        <p class="muted" style="font-size:11.5px;margin:10px 0 0">
+          Generated on demand from the same evidence the dashboard shows.
+        </p>
+      </div>
+
+      <div class="panel">
+        <h2>Offline assistant</h2>
+        <div class="field">
+          <label for="apikey">X-Airlock-Key</label>
+          <input id="apikey" type="password" placeholder="AIRLOCK_API_KEY" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="msg">Prompt</label>
+          <textarea id="msg" rows="3" placeholder="Summarise the borrower and the recommended facility."></textarea>
+        </div>
+        <div class="btnrow">
+          <button class="primary" id="send">Send to local model</button>
+          <button id="probe">Probe egress</button>
+        </div>
+        <div class="reply" id="reply">Replies come from the on-device backend only.</div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="foot">
+    Airlock &middot; evidence is computed from measured facts on this device &middot; OSCAL-shaped, not a certified OSCAL document.
+  </footer>
+</div>
+
+<script type="application/json" id="mock-sample">{
+  "generated": "2026-11-11T11:30:00Z",
+  "bundle": {
+    "name": "qwen3-airlock",
+    "version": "0.1.0",
+    "signer_fingerprint": "3f9a1c7d5b2e8406",
+    "target": {
+      "arch": "aarch64",
+      "device": "jetson-orin-nano",
+      "min_mem_gb": 4,
+      "l4t_release": "R36"
+    }
+  },
+  "device": {
+    "arch": "aarch64",
+    "l4t_release": "R36",
+    "ram_mb": 7543,
+    "backend": "ollama",
+    "model": "qwen3:1.7b"
+  },
+  "controls": [
+    {
+      "control": "SI-7",
+      "title": "Software, Firmware, and Information Integrity",
+      "status": "pass",
+      "evidence": [
+        "manifest.sig verified against pinned ed25519 public key (fingerprint 3f9a1c7d5b2e8406)",
+        "every artifact sha256 matched the signed manifest (7 artifacts, 0 mismatches)"
+      ],
+      "observed_at": "2026-11-11T11:29:52Z",
+      "detail": "Bundle manifest signature valid and all artifact digests match the signed manifest."
+    },
+    {
+      "control": "CM-8",
+      "title": "System Component Inventory",
+      "status": "pass",
+      "evidence": [
+        "sbom.cdx.json present in bundle (CycloneDX-lite, 1 component)",
+        "component type machine-learning-model, license apache-2.0"
+      ],
+      "observed_at": "2026-11-11T11:29:53Z",
+      "detail": "Signed component inventory ships inside the bundle and matches the manifest."
+    },
+    {
+      "control": "CM-2",
+      "title": "Baseline Configuration",
+      "status": "pass",
+      "evidence": [
+        "target arch aarch64 matches device aarch64",
+        "device L4T R36 matches bundle target R36",
+        "runtime backend ollama, model qwen3:1.7b"
+      ],
+      "observed_at": "2026-11-11T11:29:54Z",
+      "detail": "Installed baseline matches the baseline declared in the signed manifest."
+    },
+    {
+      "control": "RA-5",
+      "title": "Vulnerability Monitoring and Scanning",
+      "status": "pass",
+      "evidence": [
+        "scan.json present, scanner trivy, 0 critical findings",
+        "policy max_critical_cves = 0 satisfied"
+      ],
+      "observed_at": "2026-11-11T11:29:55Z",
+      "detail": "Vulnerability scan recorded in the bundle and within the declared policy threshold."
+    },
+    {
+      "control": "SR-3",
+      "title": "Supply Chain Controls and Processes",
+      "status": "pass",
+      "evidence": [
+        "model license apache-2.0 is on the manifest license allowlist",
+        "model source recorded as ollama:qwen3:1.7b"
+      ],
+      "observed_at": "2026-11-11T11:29:56Z",
+      "detail": "Declared license and provenance are permitted by bundle policy."
+    },
+    {
+      "control": "SR-4",
+      "title": "Provenance",
+      "status": "pass",
+      "evidence": [
+        "model sha256 recorded in signed manifest",
+        "quantisation read from GGUF filename/header: Q4_K_M",
+        "provenance source ollama:qwen3:1.7b (real origin recorded)"
+      ],
+      "observed_at": "2026-11-11T11:29:57Z",
+      "detail": "Model origin, digest and quantisation are recorded and covered by the manifest signature."
+    },
+    {
+      "control": "SC-7",
+      "title": "Boundary Protection",
+      "status": "pass",
+      "evidence": [
+        "egress probe at /probe reported no outbound connectivity",
+        "inference served from local backend 127.0.0.1:11434"
+      ],
+      "observed_at": "2026-11-11T11:29:58Z",
+      "detail": "Bundle runs behind the local boundary with egress observed as blocked."
+    },
+    {
+      "control": "AU-2",
+      "title": "Event Logging",
+      "status": "pass",
+      "evidence": [
+        "audit chain out/audit.jsonl holds 128 entries",
+        "entries record user, prompt_sha256, response_sha256 and status only"
+      ],
+      "observed_at": "2026-11-11T11:29:59Z",
+      "detail": "Audit events are captured for each request without storing raw prompts."
+    },
+    {
+      "control": "AU-9",
+      "title": "Protection of Audit Information",
+      "status": "pass",
+      "evidence": [
+        "hash chain verified over 128 entries (0 broken links)",
+        "each entry hash = sha256(prev_hash + canonical_json(entry))"
+      ],
+      "observed_at": "2026-11-11T11:30:00Z",
+      "detail": "Audit records are tamper-evident through a chained digest."
+    },
+    {
+      "control": "AC-3",
+      "title": "Access Enforcement",
+      "status": "pass",
+      "evidence": [
+        "POST /v1/chat requires X-Airlock-Key",
+        "401 returned and audited for requests without the key"
+      ],
+      "observed_at": "2026-11-11T11:30:01Z",
+      "detail": "Inference endpoint enforces the configured API key and logs refusals."
+    },
+    {
+      "control": "AI-EVAL",
+      "title": "AI Prompt Injection Evaluation",
+      "status": "pass",
+      "evidence": [
+        "10/10 injection prompts refused the canary (100% non-leak)",
+        "canary token absent from every recorded response"
+      ],
+      "observed_at": "2026-11-11T11:30:02Z",
+      "detail": "Adversarial prompt suite executed against the local model with no canary disclosure."
+    }
+  ],
+  "audit": {
+    "ok": true,
+    "entries": 128,
+    "tail": [
+      "8ebbf0fe5843c5e9302994ebef6e8bfff47569efccbb8cfb5f07fe1eb1855ada",
+      "74997e2f0fe89faa453dfe4cb0f5a2d66277c67cedcc61b2c470bc92d9e0f2f2",
+      "b40bf337ef031e3aa9a52ab947fe74b453dad3b1d1a08b6f78e34977e900cdcf",
+      "1ae0ba83040da4f1a5a466011d0a566d15fa4fbb5afa5036e87caf3d86d61f29",
+      "ed64272ccb08879604efe8c55d194c75baf12de217dd39822a21eaf2414cf86e"
+    ]
+  },
+  "summary": {
+    "satisfied": 11,
+    "total": 11,
+    "si7_failed": false
+  }
+}</script>
+<script type="application/json" id="mock-tampered">{
+  "generated": "2026-11-11T11:30:00Z",
+  "bundle": {
+    "name": "qwen3-airlock",
+    "version": "0.1.0",
+    "signer_fingerprint": "3f9a1c7d5b2e8406",
+    "target": {
+      "arch": "aarch64",
+      "device": "jetson-orin-nano",
+      "min_mem_gb": 4,
+      "l4t_release": "R36"
+    }
+  },
+  "device": {
+    "arch": "aarch64",
+    "l4t_release": "R36",
+    "ram_mb": 7543,
+    "backend": "ollama",
+    "model": "qwen3:1.7b"
+  },
+  "controls": [
+    {
+      "control": "SI-7",
+      "title": "Software, Firmware, and Information Integrity",
+      "status": "fail",
+      "evidence": [
+        "manifest.sig did NOT verify against the pinned ed25519 public key",
+        "model.gguf sha256 mismatch: expected 4f0b... got 91ac..."
+      ],
+      "observed_at": "2026-11-11T11:29:52Z",
+      "detail": "One byte of model.gguf was flipped after signing; integrity check refused the bundle."
+    },
+    {
+      "control": "CM-8",
+      "title": "System Component Inventory",
+      "status": "pass",
+      "evidence": [
+        "sbom.cdx.json present in bundle (CycloneDX-lite, 1 component)",
+        "component type machine-learning-model, license apache-2.0"
+      ],
+      "observed_at": "2026-11-11T11:29:53Z",
+      "detail": "Signed component inventory ships inside the bundle and matches the manifest."
+    },
+    {
+      "control": "CM-2",
+      "title": "Baseline Configuration",
+      "status": "pass",
+      "evidence": [
+        "target arch aarch64 matches device aarch64",
+        "device L4T R36 matches bundle target R36",
+        "runtime backend ollama, model qwen3:1.7b"
+      ],
+      "observed_at": "2026-11-11T11:29:54Z",
+      "detail": "Installed baseline matches the baseline declared in the signed manifest."
+    },
+    {
+      "control": "RA-5",
+      "title": "Vulnerability Monitoring and Scanning",
+      "status": "unknown",
+      "evidence": [
+        "no vulnerability scanner available on the device at collection time"
+      ],
+      "observed_at": "2026-11-11T11:29:55Z",
+      "detail": "RA-5 could not be determined: no scanner was present, so no result was claimed."
+    },
+    {
+      "control": "SR-3",
+      "title": "Supply Chain Controls and Processes",
+      "status": "pass",
+      "evidence": [
+        "model license apache-2.0 is on the manifest license allowlist",
+        "model source recorded as ollama:qwen3:1.7b"
+      ],
+      "observed_at": "2026-11-11T11:29:56Z",
+      "detail": "Declared license and provenance are permitted by bundle policy."
+    },
+    {
+      "control": "SR-4",
+      "title": "Provenance",
+      "status": "pass",
+      "evidence": [
+        "model sha256 recorded in signed manifest",
+        "quantisation read from GGUF filename/header: Q4_K_M",
+        "provenance source ollama:qwen3:1.7b (real origin recorded)"
+      ],
+      "observed_at": "2026-11-11T11:29:57Z",
+      "detail": "Model origin, digest and quantisation are recorded and covered by the manifest signature."
+    },
+    {
+      "control": "SC-7",
+      "title": "Boundary Protection",
+      "status": "pass",
+      "evidence": [
+        "egress probe at /probe reported no outbound connectivity",
+        "inference served from local backend 127.0.0.1:11434"
+      ],
+      "observed_at": "2026-11-11T11:29:58Z",
+      "detail": "Bundle runs behind the local boundary with egress observed as blocked."
+    },
+    {
+      "control": "AU-2",
+      "title": "Event Logging",
+      "status": "pass",
+      "evidence": [
+        "audit chain out/audit.jsonl holds 128 entries",
+        "entries record user, prompt_sha256, response_sha256 and status only"
+      ],
+      "observed_at": "2026-11-11T11:29:59Z",
+      "detail": "Audit events are captured for each request without storing raw prompts."
+    },
+    {
+      "control": "AU-9",
+      "title": "Protection of Audit Information",
+      "status": "pass",
+      "evidence": [
+        "hash chain verified over 128 entries (0 broken links)",
+        "each entry hash = sha256(prev_hash + canonical_json(entry))"
+      ],
+      "observed_at": "2026-11-11T11:30:00Z",
+      "detail": "Audit records are tamper-evident through a chained digest."
+    },
+    {
+      "control": "AC-3",
+      "title": "Access Enforcement",
+      "status": "pass",
+      "evidence": [
+        "POST /v1/chat requires X-Airlock-Key",
+        "401 returned and audited for requests without the key"
+      ],
+      "observed_at": "2026-11-11T11:30:01Z",
+      "detail": "Inference endpoint enforces the configured API key and logs refusals."
+    },
+    {
+      "control": "AI-EVAL",
+      "title": "AI Prompt Injection Evaluation",
+      "status": "pass",
+      "evidence": [
+        "10/10 injection prompts refused the canary (100% non-leak)",
+        "canary token absent from every recorded response"
+      ],
+      "observed_at": "2026-11-11T11:30:02Z",
+      "detail": "Adversarial prompt suite executed against the local model with no canary disclosure."
+    }
+  ],
+  "audit": {
+    "ok": true,
+    "entries": 128,
+    "tail": [
+      "8ebbf0fe5843c5e9302994ebef6e8bfff47569efccbb8cfb5f07fe1eb1855ada",
+      "74997e2f0fe89faa453dfe4cb0f5a2d66277c67cedcc61b2c470bc92d9e0f2f2",
+      "b40bf337ef031e3aa9a52ab947fe74b453dad3b1d1a08b6f78e34977e900cdcf",
+      "1ae0ba83040da4f1a5a466011d0a566d15fa4fbb5afa5036e87caf3d86d61f29",
+      "ed64272ccb08879604efe8c55d194c75baf12de217dd39822a21eaf2414cf86e"
+    ]
+  },
+  "summary": {
+    "satisfied": 9,
+    "total": 11,
+    "si7_failed": true
+  }
+}</script>
+<script>
+(function () {
+  "use strict";
+  var POLL_MS = 2000;
+  var params = new URLSearchParams(window.location.search);
+  var MOCK = params.get("mock") === "1" || params.get("mock") === "sample" || params.get("mock") === "tampered";
+  var MOCK_TAMPERED = params.get("mock") === "tampered";
+  var els = {
+    banner: document.getElementById("banner"),
+    bannerTitle: document.getElementById("banner-title"),
+    bannerSub: document.getElementById("banner-sub"),
+    badges: document.getElementById("banner-badges"),
+    controls: document.getElementById("controls"),
+    ctrlCount: document.getElementById("ctrl-count"),
+    device: document.getElementById("device"),
+    audit: document.getElementById("audit"),
+    auditTail: document.getElementById("audit-tail"),
+    dot: document.getElementById("live-dot"),
+    liveText: document.getElementById("live-text"),
+    reply: document.getElementById("reply")
+  };
+
+  function mockData() {
+    var id = MOCK_TAMPERED ? "mock-tampered" : "mock-sample";
+    var el = document.getElementById(id);
+    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+  }
+
+  function esc(s) {
+    return String(s === undefined || s === null ? "" : s)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function kv(dl, rows) {
+    dl.innerHTML = "";
+    rows.forEach(function (r) {
+      var dt = document.createElement("dt");
+      dt.textContent = r[0];
+      var dd = document.createElement("dd");
+      dd.textContent = r[1];
+      dl.appendChild(dt);
+      dl.appendChild(dd);
+    });
+  }
+
+  function statusPill(status) {
+    var s = status === "pass" || status === "fail" || status === "unknown" ? status : "unknown";
+    var label = s === "pass" ? "satisfied" : (s === "fail" ? "not satisfied" : "unknown");
+    return '<span class="pill ' + s + '">' + esc(label) + "</span>";
+  }
+
+  function renderControls(ev) {
+    var controls = (ev && ev.controls) || [];
+    els.ctrlCount.textContent = controls.length + " assessed";
+    els.controls.innerHTML = "";
+    controls.forEach(function (c) {
+      var status = c.status === "pass" || c.status === "fail" || c.status === "unknown" ? c.status : "unknown";
+      var card = document.createElement("div");
+      card.className = "card s-" + status;
+      var evList = "";
+      (c.evidence || []).forEach(function (e) { evList += "<li>" + esc(e) + "</li>"; });
+      card.innerHTML =
+        '<div class="row1"><span class="cid">' + esc(c.control) + "</span>" + statusPill(status) + "</div>" +
+        '<p class="ctitle">' + esc(c.title) + "</p>" +
+        '<p class="detail">' + esc(c.detail) + "</p>" +
+        (evList ? "<ul>" + evList + "</ul>" : "") +
+        '<div class="obs">' + esc(c.observed_at) + "</div>";
+      els.controls.appendChild(card);
+    });
+  }
+
+  function renderBanner(ev) {
+    var summary = (ev && ev.summary) || {};
+    var total = summary.total || 0;
+    var satisfied = summary.satisfied || 0;
+    var si7 = summary.si7_failed === true;
+    els.banner.className = "banner " + (si7 ? "bad" : "good");
+    els.bannerTitle.textContent = "ACCREDITATION EVIDENCE: " + satisfied + "/" + total + " controls satisfied";
+    var bits = [];
+    if (si7) { bits.push('<span class="pill fail">SI-7 integrity failed</span>'); }
+    var audit = (ev && ev.audit) || {};
+    bits.push('<span class="pill ' + (audit.ok ? "pass" : "fail") + '">audit chain ' + (audit.ok ? "verified" : "broken") + "</span>");
+    var bundle = (ev && ev.bundle) || {};
+    if (bundle.name) { bits.push('<span class="pill info">' + esc(bundle.name) + " v" + esc(bundle.version) + "</span>"); }
+    els.badges.innerHTML = bits.join(" ");
+    var sub = si7
+      ? "The bundle failed integrity verification. Evidence is reported as observed - see the POA&M."
+      : "Every assessed control passed on the measured device facts.";
+    if (MOCK) { sub += "  (mock data)"; }
+    els.bannerSub.textContent = sub;
+  }
+
+  function renderDevice(ev) {
+    var b = (ev && ev.bundle) || {};
+    var t = b.target || {};
+    var d = (ev && ev.device) || {};
+    kv(els.device, [
+      ["Bundle", (b.name || "-") + " v" + (b.version || "-")],
+      ["Signer", b.signer_fingerprint || "-"],
+      ["Target", (t.device || "-") + " / " + (t.arch || "-")],
+      ["L4T", t.l4t_release || "-"],
+      ["Device", d.arch || "-"],
+      ["RAM", d.ram_mb ? d.ram_mb + " MB" : "-"],
+      ["Backend", d.backend || "-"],
+      ["Model", d.model || "-"]
+    ]);
+  }
+
+  function renderAudit(ev) {
+    var a = (ev && ev.audit) || {};
+    kv(els.audit, [
+      ["Chain", a.ok ? "verified" : "BROKEN"],
+      ["Entries", a.entries === undefined ? "-" : String(a.entries)],
+      ["Algorithm", "sha256(prev+entry)"]
+    ]);
+    var tail = a.tail || [];
+    els.auditTail.innerHTML = tail.length
+      ? tail.map(function (h) { return "<div>" + esc(h) + "</div>"; }).join("")
+      : '<div class="muted">no audit entries yet</div>';
+  }
+
+  function render(ev) {
+    if (!ev || !ev.controls) { return false; }
+    renderBanner(ev);
+    renderControls(ev);
+    renderDevice(ev);
+    renderAudit(ev);
+    return true;
+  }
+
+  function setLive(state, text) {
+    els.dot.className = "dot" + (state ? " " + state : "");
+    els.liveText.textContent = text;
+  }
+
+  function poll() {
+    if (MOCK) {
+      var data = mockData();
+      if (render(data)) {
+        setLive("", "mock data");
+      }
+      return;
+    }
+    fetch("/evidence.json", { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) { throw new Error("HTTP " + r.status); }
+        return r.json();
+      })
+      .then(function (ev) {
+        if (render(ev)) {
+          setLive("", "live - updated " + new Date().toLocaleTimeString());
+        } else {
+          setLive("down", "bad payload");
+        }
+      })
+      .catch(function (e) {
+        setLive("down", "gateway unreachable");
+        els.banner.className = "banner bad";
+        els.bannerTitle.textContent = "ACCREDITATION EVIDENCE: collector unavailable";
+        els.bannerSub.textContent = String(e && e.message ? e.message : e);
+      });
+  }
+
+  document.getElementById("send").addEventListener("click", function () {
+    var msgEl = document.getElementById("msg");
+    var keyEl = document.getElementById("apikey");
+    var msg = (msgEl.value || "").trim();
+    if (!msg) { els.reply.className = "reply err"; els.reply.textContent = "Type a prompt first."; return; }
+    els.reply.className = "reply";
+    els.reply.textContent = "thinking...";
+    fetch("/v1/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Airlock-Key": keyEl.value || "" },
+      body: JSON.stringify({ message: msg })
+    }).then(function (r) {
+      return r.json().then(function (d) { return { code: r.status, d: d }; });
+    }).then(function (res) {
+      if (res.code === 200 && res.d && res.d.reply) {
+        els.reply.className = "reply";
+        els.reply.textContent = res.d.reply;
+      } else {
+        els.reply.className = "reply err";
+        els.reply.textContent = "HTTP " + res.code + ": " + ((res.d && res.d.error) || "request failed");
+      }
+    }).catch(function (e) {
+      els.reply.className = "reply err";
+      els.reply.textContent = "gateway unreachable: " + e;
+    });
+  });
+
+  document.getElementById("probe").addEventListener("click", function () {
+    els.reply.className = "reply";
+    els.reply.textContent = "probing...";
+    fetch("/probe", { cache: "no-store" }).then(function (r) { return r.json(); }).then(function (d) {
+      els.reply.className = "reply";
+      els.reply.textContent = "egress: " + d.egress + " - " + (d.detail || "");
+    }).catch(function (e) {
+      els.reply.className = "reply err";
+      els.reply.textContent = "probe failed: " + e;
+    });
+  });
+
+  poll();
+  setInterval(poll, POLL_MS);
+})();
+</script>
+</body>
+</html>
