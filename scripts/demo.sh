@@ -116,6 +116,10 @@ if [ "${AIRLOCK_SKIP_TAMPER:-0}" != "1" ]; then
         exit 1
     fi
     ok "tampered bundle refused, exactly as designed"
+    note "re-importing the good bundle so the dashboard shows the healthy state"
+    python3 -m airlock import "$BUNDLE" > /dev/null
+    python3 -m airlock evidence > /dev/null
+    ok "good bundle re-imported and evidence refreshed"
 else
     step "6/7  tamper - skipped (AIRLOCK_SKIP_TAMPER=1)"
 fi
