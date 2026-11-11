@@ -48,10 +48,21 @@ def cmd_import(a):
     conf = config.load()
     backend = a.backend or conf.get("AIRLOCK_BACKEND", "ollama")
     ok, checks, m = bundle.import_bundle(a.bundle, backend=backend, model_name=a.name)
+    bundle.save_state(ok, checks, m, a.bundle)
     print_checks(checks)
     bad = [c["artifact"] or c["check"] for c in checks if not c["ok"]]
     print("IMPORTED" if ok else "IMPORT REFUSED: " + ", ".join(bad))
     return 0 if ok else 1
+
+
+def cmd_evidence(a):
+    from airlock import evidence
+    ev = evidence.write_all()
+    for c in ev["controls"]:
+        print("  %s %-8s %-8s %s" % (_mark(c["status"] == "pass"), c["control"], c["status"], c["detail"]))
+    s = ev["summary"]
+    print("%d/%d controls satisfied%s" % (s["satisfied"], s["total"], "  [SI-7 FAILED]" if s["si7_failed"] else ""))
+    return 0
 
 
 def cmd_serve(a):
@@ -87,6 +98,7 @@ def main(argv=None):
     s = sub.add_parser("verify"); s.add_argument("bundle"); s.set_defaults(fn=cmd_verify)
     s = sub.add_parser("import"); s.add_argument("bundle"); s.add_argument("--backend", default=None)
     s.add_argument("--name", default=None); s.set_defaults(fn=cmd_import)
+    sub.add_parser("evidence").set_defaults(fn=cmd_evidence)
     sub.add_parser("serve").set_defaults(fn=cmd_serve)
     sub.add_parser("audit-verify").set_defaults(fn=cmd_audit_verify)
     a = p.parse_args(argv)

@@ -271,3 +271,27 @@ def import_bundle(bundle, install_root=None, backend="ollama", model_name=None, 
                        "detail": "llama-server -m %s/%s.gguf -c 2048 -t 4 --host 127.0.0.1 --port 8080" % (models, name),
                        "artifact": None})
     return True, checks, manifest
+
+
+# ---------------------------------------------------------------- state (read by evidence collectors)
+STATE_PATH = os.path.join(ROOT, "out", "state.json")
+
+
+def save_state(ok, checks, manifest, bundle_path):
+    """Persist the last import outcome so evidence collection never has to re-hash a 1 GB model."""
+    d = os.path.dirname(STATE_PATH)
+    if not os.path.isdir(d):
+        os.makedirs(d)
+    state = {"imported_at": now_iso(), "ok": bool(ok), "bundle": os.path.basename(bundle_path),
+             "checks": checks, "manifest": manifest}
+    with open(STATE_PATH, "w") as f:
+        json.dump(state, f, indent=2, sort_keys=True)
+    return state
+
+
+def load_state():
+    try:
+        with open(STATE_PATH) as f:
+            return json.load(f)
+    except (IOError, ValueError):
+        return None
