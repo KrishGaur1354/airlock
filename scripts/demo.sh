@@ -125,9 +125,10 @@ fi
 
 # ---------------------------------------------------------------- 7. serve
 if [ "$SERVE" -eq 1 ]; then
-    step "7/7  serve - dashboard on http://127.0.0.1:${AIRLOCK_PORT:-8000}/"
+    step "7/7  serve - gateway in a network-less namespace (kernel-enforced air gap)"
+    note "dashboard: ssh -L 8000:$ROOT/run/gateway.sock <user>@<jetson>  then open http://localhost:8000"
     note "the dashboard polls /evidence.json every 2 s; exports are under /export/"
-    exec python3 -m airlock serve
+    exec python3 scripts/airgap.py
 fi
 
 step "done - artefacts in out/"

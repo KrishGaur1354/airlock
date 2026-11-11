@@ -77,11 +77,18 @@ class Gateway(object):
         return redact.redact(self.chat_raw(message, num_predict)).strip()
 
     def probe(self):
+        """Egress test. Step 1 connects to a raw IP (no DNS involved), so 'blocked' means there is no route at all,
+        not merely broken name resolution. Step 2 repeats the guide's HTTPS fetch."""
+        try:
+            socket.create_connection(("1.1.1.1", 443), timeout=3).close()
+            return {"egress": "allowed", "detail": "TCP connect to 1.1.1.1:443 succeeded"}
+        except OSError as e:
+            raw = (e.strerror or str(e)).strip()
         try:
             urllib.request.urlopen("https://example.com", timeout=3)
             return {"egress": "allowed", "detail": "https://example.com reachable"}
-        except Exception as e:  # any failure to connect == blocked from this host's view
-            return {"egress": "blocked", "detail": "%s: %s" % (type(e).__name__, e)}
+        except Exception:
+            return {"egress": "blocked", "detail": "1.1.1.1:443 -> %s (no route); https://example.com unreachable" % raw}
 
     def prewarm(self):
         try:
