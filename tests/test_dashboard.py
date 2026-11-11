@@ -71,8 +71,8 @@ class DashboardTest(unittest.TestCase):
         self.assertIn('params.get("mock") === "tampered"', self.html)
 
     def test_mock_mode_still_reads_the_evidence_endpoint(self):
-        poll_block = self.html.split("function poll() {")[1].split("function")[0]
-        mock_block = poll_block.split("if (MOCK) {")[1].split("return;")[0]
+        poll_block = self.html.split("function poll() {")[1].split('document.getElementById("send")')[0]
+        mock_block = poll_block.split("if (MOCK) {")[1]
         self.assertIn("/evidence.json", mock_block)
         self.assertIn("mockData()", mock_block)
 
