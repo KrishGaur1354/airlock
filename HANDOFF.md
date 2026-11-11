@@ -83,6 +83,22 @@ the signed manifest, so the enriched artefacts are covered by the signature with
 `eval` subcommand exists, that string is accurate. When it is not run, the control stays
 `unknown` -> POA&M, which is the intended behaviour (we never fake a pass).
 
+## 4b. evidence.py - use the audit anchor (closes the truncation gap)
+
+REVIEW.md noted that a hash chain cannot detect the removal of its own tail: the remaining links
+still line up, so `audit.verify()` returns ok on a truncated log. `airlock/audit.py` now has an
+anchor for that (it is implemented and tested on my side):
+
+```python
+audit.write_anchor(audit_path)          # after each collection: remember head hash + count
+ok, n, bad, detail = audit.verify_anchored(audit_path)
+```
+
+`verify_anchored` returns `ok=False` with a detail of "audit log truncated: N entries, M were
+anchored" when the log got shorter, or "audit head changed" when it was rewritten. Please use it
+for the AU-9 collector so the evidence can state that the log was not truncated. The anchor file
+lands next to the log as `out/audit.jsonl.anchor`.
+
 ## 5. AGENTS.md - module list
 
 `airlock/redact.py` is a new module (output-boundary redaction). It is stdlib only, has no I/O
