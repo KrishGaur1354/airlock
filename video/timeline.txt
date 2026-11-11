@@ -1,0 +1,32 @@
+Airlock demo, 90.0 s, 1920x1080, 30 fps, 2700 frames, silent (voiceover added in post)
+Each block starts on its exact second below; the 9-frame (0.3 s) crossfade into
+a block plays during the first 0.3 s of that block's slot.
+
+start    frame  block                                   voiceover #
+0:00.00     0   Slide 1                                 1
+0:08.00   240   Terminal a: airlock verify              2
+0:17.00   510   Terminal b: airlock import              3
+0:25.00   750   Dashboard 01 (healthy, 10/11)           4
+  0:25.00   750     overview
+  0:26.00   780     gauge 10/11
+  0:29.00   870     SC-7 card
+  0:30.50   915     boundary panel, "Network is unreachable" probe text
+  0:33.00   990     RA-5 card (unknown)
+0:36.00  1080   Dashboard 02: SSP export                4
+0:40.00  1200   Dashboard 03: Memo question answer      5
+0:46.00  1380   Dashboard 04: Injection attack refused  5
+0:52.00  1560   Terminal c: tamper.py + refused import  6
+0:58.00  1740   Dashboard 05 (tampered, 9/11, red)      6
+  0:58.67  1760     red banner
+  1:00.83  1825     SI-7 card (not satisfied)
+1:02.83  1885   Dashboard 06: POA&M, new SI-7 item      6
+1:07.00  2010   Slide 5 (who pays)                      7
+1:20.00  2400   Slide 6                                 8
+1:30.00  2700   end
+
+Captions
+0:10.30-0:16.70  Signature + every hash verified
+0:25.15-0:28.85  11 NIST 800-53 controls, measured on device
+0:29.00-0:32.85  No network route out
+0:40.30-0:51.75  Fully offline inference
+0:52.30-0:57.85  1 byte flipped → rejected
