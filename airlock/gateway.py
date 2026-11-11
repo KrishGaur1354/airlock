@@ -11,7 +11,7 @@ import urllib.request
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from socketserver import ThreadingMixIn
 
-from airlock import audit, config
+from airlock import audit, config, redact
 from airlock.bundle import sha256_bytes
 from airlock.config import ROOT
 
@@ -46,7 +46,8 @@ class Gateway(object):
         prefix = "/no_think\n" if "qwen3" in self.model.lower() else ""
         self.system = prefix + INSTRUCTIONS + "\n\n--- MEMO ---\n" + memo
 
-    def chat(self, message, num_predict=NUM_PREDICT):
+    def chat_raw(self, message, num_predict=NUM_PREDICT):
+        """The model's answer exactly as generated (used by the eval to measure the raw model)."""
         msgs = [{"role": "system", "content": self.system}, {"role": "user", "content": message}]
         if self.backend == "ollama":
             url = "http://127.0.0.1:11434/api/chat"
@@ -60,6 +61,10 @@ class Gateway(object):
             d = json.loads(r.read().decode())
         text = d["message"]["content"] if self.backend == "ollama" else d["choices"][0]["message"]["content"]
         return _THINK.sub("", text).strip()
+
+    def chat(self, message, num_predict=NUM_PREDICT):
+        """The answer as it leaves the service: account references are redacted at the boundary."""
+        return redact.redact(self.chat_raw(message, num_predict)).strip()
 
     def probe(self):
         try:
