@@ -6,3 +6,4 @@ __pycache__/
 *.gguf
 *.airlock
 run/
+lowside/gmi.conf

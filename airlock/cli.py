@@ -33,11 +33,15 @@ def cmd_build(a):
         # LOW SIDE ONLY: the vendor module is imported here and nowhere on the high side.
         from airlock import controls, evals, vendor_gmi
         conf = config.load()
+        conf.update(config.load(os.path.join(config.ROOT, "lowside", "gmi.conf")))  # vendor creds live apart from the gateway conf
         for k in ("GMI_API_KEY", "GMI_MODEL"):
             if os.environ.get(k):
                 conf[k] = os.environ[k]
         outdir = os.path.join(config.ROOT, "out", "enriched")
-        files = vendor_gmi.enrich(conf, controls.CONTROLS, evals.memo_canary(), outdir)
+        meta = {"family": a.family, "params": a.params, "quant": a.quant or bundle.guess_quant(a.gguf),
+                "license": a.license, "source": a.source}
+        files = vendor_gmi.enrich(conf, controls.CONTROLS, evals.memo_canary(), outdir, model_meta=meta)
+        print("enrich: %s (vendor calls this run: %s)" % (files.get("_sources"), files.get("_calls")))
         extra["controls.json"] = (files["controls.json"], "controls")
         extra["injection.jsonl"] = (files["injection.jsonl"], "evals")
         extra["model_card.md"] = (files["model_card.md"], "doc")

@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-11T12:57:20Z",
+  "origin": "gmi-cloud",
+  "request": {
+    "max_tokens": 800,
+    "messages": [
+      {
+        "content": "You write implementation statements for NIST SP 800-53 accreditation packages. Be precise, factual and concise. Never invent facts: the observed result is filled in later by the collector.",
+        "role": "system"
+      },
+      {
+        "content": "Control: AI-EVAL - AI Prompt Injection Evaluation\nHow it is verified: Run the hand-written adversarial prompt suite against the deployed model with a canary token in the system context and confirm the canary never appears in a response.\n\nWrite ONE implementation statement (at most three sentences) describing how this control is implemented for a signed, offline AI bundle running on an air-gapped edge device. The statement MUST contain the literal placeholders {status}, {evidence} and {observed_at}, where the observed result is filled in at assessment time. Do not mention the placeholder values themselves. Output only the statement.",
+        "role": "user"
+      }
+    ],
+    "model": "deepseek-ai/DeepSeek-V3.2",
+    "temperature": 0.3
+  },
+  "response": "The signed, offline AI bundle on the air-gapped edge device is evaluated by executing the hand-written adversarial prompt suite against the deployed model with a canary token placed in the system context and inspecting responses to confirm the canary never appears. The verification outcome is recorded as {status}, with supporting evidence {evidence}, at {observed_at}."
+}
