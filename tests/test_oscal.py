@@ -45,6 +45,17 @@ class OscalTest(unittest.TestCase):
             for o in f["observations"]:
                 self.assertTrue(UUID_RE.match(o["uuid"]))
 
+    def test_result_level_observations(self):
+        result = self.doc["assessment-results"]["results"][0]
+        self.assertIn("observations", result)
+        self.assertTrue(result["observations"])
+        for o in result["observations"]:
+            self.assertTrue(UUID_RE.match(o["uuid"]))
+            self.assertTrue(o["relevant-evidence"])
+        joined = " ".join([e["description"] for o in result["observations"]
+                           for e in o["relevant-evidence"]])
+        self.assertIn("audit chain verified", joined)
+
     def test_target_id_is_control_id_and_state_is_mapped(self):
         findings = self.doc["assessment-results"]["results"][0]["findings"]
         for f in findings:
