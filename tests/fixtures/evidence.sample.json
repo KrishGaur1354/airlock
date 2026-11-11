@@ -1,0 +1,162 @@
+{
+  "generated": "2026-11-11T11:30:00Z",
+  "bundle": {
+    "name": "qwen3-airlock",
+    "version": "0.1.0",
+    "signer_fingerprint": "3f9a1c7d5b2e8406",
+    "target": {
+      "arch": "aarch64",
+      "device": "jetson-orin-nano",
+      "min_mem_gb": 4,
+      "l4t_release": "R36"
+    }
+  },
+  "device": {
+    "arch": "aarch64",
+    "l4t_release": "R36",
+    "ram_mb": 7543,
+    "backend": "ollama",
+    "model": "qwen3:1.7b"
+  },
+  "controls": [
+    {
+      "control": "SI-7",
+      "title": "Software, Firmware, and Information Integrity",
+      "status": "pass",
+      "evidence": [
+        "manifest.sig verified against pinned ed25519 public key (fingerprint 3f9a1c7d5b2e8406)",
+        "every artifact sha256 matched the signed manifest (7 artifacts, 0 mismatches)"
+      ],
+      "observed_at": "2026-11-11T11:29:52Z",
+      "detail": "Bundle manifest signature valid and all artifact digests match the signed manifest."
+    },
+    {
+      "control": "CM-8",
+      "title": "System Component Inventory",
+      "status": "pass",
+      "evidence": [
+        "sbom.cdx.json present in bundle (CycloneDX-lite, 1 component)",
+        "component type machine-learning-model, license apache-2.0"
+      ],
+      "observed_at": "2026-11-11T11:29:53Z",
+      "detail": "Signed component inventory ships inside the bundle and matches the manifest."
+    },
+    {
+      "control": "CM-2",
+      "title": "Baseline Configuration",
+      "status": "pass",
+      "evidence": [
+        "target arch aarch64 matches device aarch64",
+        "device L4T R36 matches bundle target R36",
+        "runtime backend ollama, model qwen3:1.7b"
+      ],
+      "observed_at": "2026-11-11T11:29:54Z",
+      "detail": "Installed baseline matches the baseline declared in the signed manifest."
+    },
+    {
+      "control": "RA-5",
+      "title": "Vulnerability Monitoring and Scanning",
+      "status": "pass",
+      "evidence": [
+        "scan.json present, scanner trivy, 0 critical findings",
+        "policy max_critical_cves = 0 satisfied"
+      ],
+      "observed_at": "2026-11-11T11:29:55Z",
+      "detail": "Vulnerability scan recorded in the bundle and within the declared policy threshold."
+    },
+    {
+      "control": "SR-3",
+      "title": "Supply Chain Controls and Processes",
+      "status": "pass",
+      "evidence": [
+        "model license apache-2.0 is on the manifest license allowlist",
+        "model source recorded as ollama:qwen3:1.7b"
+      ],
+      "observed_at": "2026-11-11T11:29:56Z",
+      "detail": "Declared license and provenance are permitted by bundle policy."
+    },
+    {
+      "control": "SR-4",
+      "title": "Provenance",
+      "status": "pass",
+      "evidence": [
+        "model sha256 recorded in signed manifest",
+        "quantisation read from GGUF filename/header: Q4_K_M",
+        "provenance source ollama:qwen3:1.7b (real origin recorded)"
+      ],
+      "observed_at": "2026-11-11T11:29:57Z",
+      "detail": "Model origin, digest and quantisation are recorded and covered by the manifest signature."
+    },
+    {
+      "control": "SC-7",
+      "title": "Boundary Protection",
+      "status": "pass",
+      "evidence": [
+        "egress probe at /probe reported no outbound connectivity",
+        "inference served from local backend 127.0.0.1:11434"
+      ],
+      "observed_at": "2026-11-11T11:29:58Z",
+      "detail": "Bundle runs behind the local boundary with egress observed as blocked."
+    },
+    {
+      "control": "AU-2",
+      "title": "Event Logging",
+      "status": "pass",
+      "evidence": [
+        "audit chain out/audit.jsonl holds 128 entries",
+        "entries record user, prompt_sha256, response_sha256 and status only"
+      ],
+      "observed_at": "2026-11-11T11:29:59Z",
+      "detail": "Audit events are captured for each request without storing raw prompts."
+    },
+    {
+      "control": "AU-9",
+      "title": "Protection of Audit Information",
+      "status": "pass",
+      "evidence": [
+        "hash chain verified over 128 entries (0 broken links)",
+        "each entry hash = sha256(prev_hash + canonical_json(entry))"
+      ],
+      "observed_at": "2026-11-11T11:30:00Z",
+      "detail": "Audit records are tamper-evident through a chained digest."
+    },
+    {
+      "control": "AC-3",
+      "title": "Access Enforcement",
+      "status": "pass",
+      "evidence": [
+        "POST /v1/chat requires X-Airlock-Key",
+        "401 returned and audited for requests without the key"
+      ],
+      "observed_at": "2026-11-11T11:30:01Z",
+      "detail": "Inference endpoint enforces the configured API key and logs refusals."
+    },
+    {
+      "control": "AI-EVAL",
+      "title": "AI Prompt Injection Evaluation",
+      "status": "pass",
+      "evidence": [
+        "10/10 injection prompts refused the canary (100% non-leak)",
+        "canary token absent from every recorded response"
+      ],
+      "observed_at": "2026-11-11T11:30:02Z",
+      "detail": "Adversarial prompt suite executed against the local model with no canary disclosure."
+    }
+  ],
+  "audit": {
+    "ok": true,
+    "entries": 128,
+    "tail": [
+      "8ebbf0fe5843c5e9302994ebef6e8bfff47569efccbb8cfb5f07fe1eb1855ada",
+      "74997e2f0fe89faa453dfe4cb0f5a2d66277c67cedcc61b2c470bc92d9e0f2f2",
+      "b40bf337ef031e3aa9a52ab947fe74b453dad3b1d1a08b6f78e34977e900cdcf",
+      "1ae0ba83040da4f1a5a466011d0a566d15fa4fbb5afa5036e87caf3d86d61f29",
+      "ed64272ccb08879604efe8c55d194c75baf12de217dd39822a21eaf2414cf86e"
+    ]
+  },
+  "summary": {
+    "satisfied": 11,
+    "total": 11,
+    "si7_failed": false
+  }
+}
