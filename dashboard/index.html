@@ -618,7 +618,7 @@ footer.foot { color: #5d6a83; font-size: 11.5px; text-align: center; margin-top:
     var sub = si7
       ? "The bundle failed integrity verification. Evidence is reported as observed - see the POA&M."
       : "Every assessed control passed on the measured device facts.";
-    if (MOCK) { sub += "  (mock data)"; }
+    if (MOCK) { sub += "  (mock mode)"; }
     els.bannerSub.textContent = sub;
   }
 
@@ -667,10 +667,20 @@ footer.foot { color: #5d6a83; font-size: 11.5px; text-align: center; margin-top:
 
   function poll() {
     if (MOCK) {
-      var data = mockData();
-      if (render(data)) {
-        setLive("", "mock data");
-      }
+      // mock mode still prefers the live endpoint; when it is not reachable
+      // (the file opened straight from disk) the embedded fixture is used
+      fetch("/evidence.json", { cache: "no-store" })
+        .then(function (r) {
+          if (!r.ok) { throw new Error("HTTP " + r.status); }
+          return r.json();
+        })
+        .then(function (ev) {
+          if (render(ev)) { setLive("", "mock mode - live payload"); }
+        })
+        .catch(function () {
+          var data = mockData();
+          if (render(data)) { setLive("stale", "mock mode - fixture data"); }
+        });
       return;
     }
     fetch("/evidence.json", { cache: "no-store" })

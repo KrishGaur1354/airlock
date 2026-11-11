@@ -67,6 +67,14 @@ class DashboardTest(unittest.TestCase):
         self.assertIn("mock", self.html)
         self.assertIn("mock-sample", self.html)
         self.assertIn("mock-tampered", self.html)
+        self.assertIn('params.get("mock") === "1"', self.html)
+        self.assertIn('params.get("mock") === "tampered"', self.html)
+
+    def test_mock_mode_still_reads_the_evidence_endpoint(self):
+        poll_block = self.html.split("function poll() {")[1].split("function")[0]
+        mock_block = poll_block.split("if (MOCK) {")[1].split("return;")[0]
+        self.assertIn("/evidence.json", mock_block)
+        self.assertIn("mockData()", mock_block)
 
     def test_embedded_mock_data_matches_fixtures(self):
         sample = embedded(self.html, "mock-sample")
