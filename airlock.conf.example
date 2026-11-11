@@ -1,5 +1,18 @@
+# Copy to airlock.conf (gitignored) and fill in. KEY=VALUE, no quotes, parsed by hand.
+
+# ---- High side (Jetson): gateway ------------------------------------------------
 AIRLOCK_BACKEND=ollama
 AIRLOCK_MODEL=qwen3-airlock
-AIRLOCK_API_KEY=change-me
+# Value clients must send in the X-Airlock-Key header on POST /v1/chat. Pick any long random string.
+AIRLOCK_API_KEY=
 AIRLOCK_PORT=8000
-JETSON=user@host
+# scripts/airgap.py sets AIRLOCK_SOCKET itself; leave unset otherwise.
+
+# ---- Deploy (laptop) --------------------------------------------------------------
+JETSON=krish@<jetson-ip>
+
+# ---- Low side ONLY (laptop): vendor enrichment for `airlock build --enrich` -------
+# Never put these on the Jetson: `make deploy` excludes airlock.conf, and the high side never reads them.
+# Model id: list yours with  curl -H "Authorization: Bearer $GMI_API_KEY" https://api.gmi-serving.com/v1/models
+GMI_API_KEY=
+GMI_MODEL=
