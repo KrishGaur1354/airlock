@@ -158,6 +158,12 @@ def poam_items(evidence, today=None):
             "milestone_date": milestone,
             "status": "open",
         })
+    for g in (evidence or {}).get("gaps", []):  # self-reported residual gaps on controls that otherwise pass
+        n += 1
+        items.append({"id": "POAM-%03d" % n, "control": g.get("control", ""),
+                      "weakness": "Residual gap: " + _text(g.get("weakness")),
+                      "remediation": _text(g.get("remediation")),
+                      "milestone_date": milestone, "status": "open"})
     return items
 
 
