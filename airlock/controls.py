@@ -2,7 +2,7 @@
 
 Each entry describes one control, how Airlock verifies it, what to do when it
 fails, and a default implementation-statement template. The templates are the
-fallback used when the vendor (GMI Cloud) is not reachable at build time: they
+fallback used when the vendor LLM is not reachable at build time: they
 are filled with the OBSERVED status/evidence/observed_at at report time.
 
 Template placeholders: {status}, {evidence}, {observed_at}.

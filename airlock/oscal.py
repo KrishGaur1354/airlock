@@ -110,6 +110,38 @@ def _finding(control_result, party_uuid):
     }
 
 
+def _result_observation(evidence, party_uuid):
+    """Result-level observation: what was examined at assessment level."""
+    bundle = evidence.get("bundle", {}) or {}
+    device = evidence.get("device", {}) or {}
+    audit = evidence.get("audit", {}) or {}
+    evidence_strings = []
+    if bundle.get("signer_fingerprint"):
+        evidence_strings.append("bundle %s v%s signed by %s"
+                                % (bundle.get("name", "-"), bundle.get("version", "-"),
+                                   bundle.get("signer_fingerprint")))
+    if device:
+        evidence_strings.append("assessed on %s / %s / %s MB RAM"
+                                % (device.get("backend", "-"), device.get("model", "-"),
+                                   device.get("ram_mb", "-")))
+    evidence_strings.append("audit chain %s over %s entries"
+                            % ("verified" if audit.get("ok") else "BROKEN", audit.get("entries", 0)))
+    return {
+        "uuid": _uuid(),
+        "title": "Assessment context",
+        "description": "The controls below were assessed against the signed bundle on the "
+                       "deployment target using measured facts only.",
+        "methods": ["EXAMINE"],
+        "types": ["statement"],
+        "collected": evidence.get("generated") or _now(),
+        "expires": _expire(evidence.get("generated")),
+        "props": _shape_prop(),
+        "relevant-evidence": [{"href": "#evidence-%s" % party_uuid, "description": s}
+                              for s in evidence_strings],
+        "links": [{"href": "#party-%s" % party_uuid, "rel": "actor"}],
+    }
+
+
 def build(evidence):
     """Build the OSCAL-shaped assessment-results document from an evidence dict."""
     evidence = evidence or {}
@@ -170,6 +202,7 @@ def build(evidence):
                     "remarks": "NIST SP 800-53 controls claimed by the bundle manifest.",
                 },
                 "findings": findings,
+                "observations": [_result_observation(evidence, party_uuid)],
                 "remarks": "%s of %s controls satisfied; audit chain %s."
                            % (satisfied, total, "verified" if audit.get("ok") else "BROKEN"),
             }],
