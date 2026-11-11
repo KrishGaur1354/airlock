@@ -14,9 +14,9 @@ their own NIST 800-53 accreditation evidence (OSCAL-shaped results, SSP, POA&M).
 7. Missing syft/trivy/cosign are not errors: record as unknown control -> POA&M.
 
 ## Environment
-Jetson Orin Nano (R36.4.3), aarch64, Python 3.10.12. Model qwen3-1.7b Q4_K_M. Backend via AIRLOCK_BACKEND
+Jetson Orin Nano (R36.4.3), aarch64, Python 3.10.12. Model `qwen3:1.7b` via Ollama (Q4_K_M); upgrade qwen3:4b, fallback qwen3:0.6b. R32 (orig Nano): llama.cpp CPU-only + Qwen3-0.6B-Q4_K_M, NEVER Ollama; llama.cpp build timeboxed 25 min, no CUDA build on R32; if it fails use the laptop as the edge device and say so. Backend via AIRLOCK_BACKEND
 (ollama http://127.0.0.1:11434/api/chat | llamacpp http://127.0.0.1:8080/v1/chat/completions), model in AIRLOCK_MODEL.
-Prepend `/no_think` to the system prompt. Gateway :8000. Config: airlock.conf (KEY=VALUE, hand-parsed).
+Prepend `/no_think` to the system prompt for Qwen3 only (omit for Qwen2.5). Gateway :8000. Config: airlock.conf (KEY=VALUE, hand-parsed).
 
 ## Layout
 airlock/{cli,bundle,signing,sbom,scan,gateway,audit,evidence,controls,oscal,report,evals,vendor_gmi}.py
@@ -52,3 +52,14 @@ High side (import/gateway/evidence) must never import vendor_gmi or read GMI_API
 7:10 scaffold+keygen+hashing+backend reachable | 8:00 build/verify/import | 8:45 gateway | 9:30 collectors+reports |
 9:50 dashboard+tamper, feature freeze | 10:15 README+video | 10:40 submit.
 Non-negotiables: signature verify, offline inference, egress probe, tamper rejection, SSP export.
+
+## Added in guide v2
+- Licenses: all Qwen3 dense + Qwen2.5 0.5B/1.5B are Apache-2.0. Qwen2.5-3B is NOT (Qwen Research License) -> must fail the SR-3 license gate (negative test).
+- Generation cap 128 tokens (num_predict / max_tokens), temperature 0.2. Pre-warm the model with one request at `serve` startup.
+- Small models are weak against injection: keep memo short, system prompt firm, AI-EVAL threshold >=80% non-leak, NEVER fake a pass.
+- Provenance (SR-4): model.source must be the real origin (hf://... or ollama:qwen3:1.7b when extracted from a blob). Always record sha256; read `quant` from filename/GGUF header, do not assume.
+- Enriched bundles also carry controls.json, evals/injection.jsonl, model_card.md, all in `artifacts` and signed.
+- GMI: commit cached outputs (lowside/cache) so the demo never needs network. GMI_API_KEY lives only in the laptop's airlock.conf; `make deploy` excludes airlock.conf and keys/airlock.key.
+  Check: `grep -rn GMI airlock/gateway.py airlock/evidence.py airlock/bundle.py` returns nothing.
+- report.py fills controls.json templates with OBSERVED evidence; missing template -> plain default sentence. LLM writes wording, collectors supply facts.
+- CM-2 also records measured runtime facts (backend, GPU used or not via tegrastats sample if available).
