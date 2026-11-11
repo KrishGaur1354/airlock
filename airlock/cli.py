@@ -54,6 +54,24 @@ def cmd_import(a):
     return 0 if ok else 1
 
 
+def cmd_serve(a):
+    from airlock import gateway
+    gateway.serve()
+    return 0
+
+
+def cmd_audit_verify(a):
+    from airlock import audit
+    ok, n, bad = audit.verify(gateway_audit_path())
+    print("%s audit chain: %d entries%s" % (_mark(ok), n, "" if ok else " (first bad entry #%d)" % bad))
+    return 0 if ok else 1
+
+
+def gateway_audit_path():
+    from airlock import gateway
+    return gateway.AUDIT_PATH
+
+
 def main(argv=None):
     p = argparse.ArgumentParser(prog="airlock")
     sub = p.add_subparsers(dest="cmd")
@@ -69,6 +87,8 @@ def main(argv=None):
     s = sub.add_parser("verify"); s.add_argument("bundle"); s.set_defaults(fn=cmd_verify)
     s = sub.add_parser("import"); s.add_argument("bundle"); s.add_argument("--backend", default=None)
     s.add_argument("--name", default=None); s.set_defaults(fn=cmd_import)
+    sub.add_parser("serve").set_defaults(fn=cmd_serve)
+    sub.add_parser("audit-verify").set_defaults(fn=cmd_audit_verify)
     a = p.parse_args(argv)
     if not getattr(a, "fn", None):
         p.print_help()
