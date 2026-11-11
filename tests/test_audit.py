@@ -138,5 +138,76 @@ class AuditTest(unittest.TestCase):
                 json.loads(line)
 
 
+class AuditAnchorTest(unittest.TestCase):
+    """A hash chain alone cannot see its own tail being removed; the anchor can."""
+
+    def setUp(self):
+        self.dir = tempfile.mkdtemp(prefix="airlock-audit-anchor-")
+        self.path = os.path.join(self.dir, "audit.jsonl")
+
+    def tearDown(self):
+        shutil.rmtree(self.dir, ignore_errors=True)
+
+    def _fill(self, n):
+        for i in range(n):
+            audit.append(self.path, "u%d" % i, p("p%d" % i), p("r%d" % i), "ok")
+
+    def test_anchor_is_written_next_to_the_log(self):
+        self._fill(3)
+        blob = audit.write_anchor(self.path)
+        self.assertEqual(blob["count"], 3)
+        self.assertTrue(os.path.isfile(self.path + ".anchor"))
+        self.assertEqual(audit.read_anchor(self.path)["count"], 3)
+
+    def test_anchored_verify_accepts_an_intact_log(self):
+        self._fill(4)
+        audit.write_anchor(self.path)
+        ok, count, bad, detail = audit.verify_anchored(self.path)
+        self.assertTrue(ok, detail)
+        self.assertEqual(count, 4)
+        self.assertIsNone(bad)
+
+    def test_anchored_verify_detects_tail_truncation(self):
+        self._fill(5)
+        audit.write_anchor(self.path)
+        with open(self.path) as f:
+            lines = f.readlines()
+        with open(self.path, "w") as f:
+            f.writelines(lines[:-2])          # drop the last two entries
+        ok, count, bad, detail = audit.verify_anchored(self.path)
+        self.assertFalse(ok)
+        self.assertIn("truncated", detail)
+        self.assertEqual(count, 3)
+        # the plain chain check alone would have accepted this log
+        self.assertTrue(audit.verify(self.path)[0])
+
+    def test_anchored_verify_detects_a_rewritten_head(self):
+        self._fill(3)
+        audit.write_anchor(self.path)
+        with open(self.path) as f:
+            lines = f.readlines()
+        first = json.loads(lines[0])
+        first["user"] = "someone-else"
+        body = dict((k, v) for k, v in first.items() if k != "hash")
+        first["hash"] = audit.entry_hash(first["prev_hash"], body)
+        lines[0] = json.dumps(first) + "\n"
+        with open(self.path, "w") as f:
+            f.writelines(lines)
+        ok, count, bad, detail = audit.verify_anchored(self.path)
+        self.assertFalse(ok)
+        self.assertIn("head changed", detail)
+
+    def test_no_anchor_is_not_an_error(self):
+        self._fill(2)
+        ok, count, bad, detail = audit.verify_anchored(self.path)
+        self.assertTrue(ok)
+        self.assertEqual(count, 2)
+        self.assertIn("no anchor", detail)
+
+    def test_missing_anchor_file_is_handled(self):
+        self._fill(2)
+        self.assertIsNone(audit.read_anchor(self.path))
+
+
 if __name__ == "__main__":
     unittest.main()
