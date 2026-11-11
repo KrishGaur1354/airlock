@@ -119,6 +119,16 @@ class SspTest(unittest.TestCase):
         self.assertIn("value", out)
         self.assertIn("pass", out)
 
+    def test_accepts_whole_controls_json_blob(self):
+        blob = {"controls": [{"control": "SI-7", "statement": "Blob statement {status}"}]}
+        out = report.render_ssp(self.ev, statements=blob)
+        self.assertIn("Blob statement pass", out)
+
+    def test_accepts_controls_json_mapping(self):
+        blob = {"controls": {"SI-7": {"statement": "Mapped statement {status}"}}}
+        out = report.render_ssp(self.ev, statements=blob)
+        self.assertIn("Mapped statement pass", out)
+
     def test_braces_in_statement_do_not_raise(self):
         out = report.render_ssp(self.ev, statements={"SI-7": "literal { braces } here"})
         self.assertIn("literal", out)
