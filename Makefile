@@ -1,6 +1,6 @@
 JETSON ?= $(shell grep ^JETSON= airlock.conf 2>/dev/null | cut -d= -f2)
 deploy:
-	rsync -az --exclude .git --exclude out ./ $(JETSON):~/airlock/
+	rsync -az --exclude .git --exclude out --exclude airlock.conf --exclude keys/airlock.key ./ $(JETSON):~/airlock/
 remote:
 	ssh $(JETSON) 'cd ~/airlock && $(CMD)'
 demo:

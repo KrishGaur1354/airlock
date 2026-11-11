@@ -1,6 +1,5 @@
 keys/airlock.key
 out/
-lowside/cache/
 airlock.conf
 __pycache__/
 *.pyc
