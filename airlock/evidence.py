@@ -19,7 +19,7 @@ TITLES = {
     "SC-7": "Boundary protection", "AU-2": "Event logging", "AU-9": "Protection of audit information",
     "AC-3": "Access enforcement", "AI-EVAL": "GenAI injection / exfiltration evaluation (NIST AI 600-1)",
 }
-_CACHE = {"t": 0, "ev": None}
+_CACHE = {"t": 0, "ev": None, "state_mtime": None}
 _LOCK = threading.Lock()
 TTL = 15
 
@@ -169,7 +169,7 @@ def collect_all(gateway=None):
                       "scope: the gateway process that handles prompts and data. Network interfaces visible to it: %s%s; "
                       "egress %s (%s); local inference %s" % (
                           ", ".join(ifaces) or "unknown", " (network namespace)" if isolated else "",
-                          probe["egress"], probe["detail"][:70], "works" if works else "FAILED"),
+                          probe["egress"], probe["detail"][:140], "works" if works else "FAILED"),
                       ["/probe", "/proc/net/dev", "local inference"]))
         if isolated and gateway.backend == "ollama":
             gaps.append({"control": "SC-7",
@@ -246,13 +246,17 @@ def collect_all(gateway=None):
 
 def collect(gateway=None):
     """Cached (dashboard polls every 2 s; collection makes a short inference call)."""
+    try:
+        sm = os.path.getmtime(bundle.STATE_PATH)
+    except OSError:
+        sm = None
     with _LOCK:
-        if _CACHE["ev"] is not None and time.time() - _CACHE["t"] < TTL:
+        if _CACHE["ev"] is not None and time.time() - _CACHE["t"] < TTL and sm == _CACHE["state_mtime"]:
             ev = dict(_CACHE["ev"])
             ev["audit"] = audit.summary(os.path.join(OUT, "audit.jsonl")) if os.path.exists(os.path.join(OUT, "audit.jsonl")) else ev["audit"]
             return ev
         ev = collect_all(gateway)
-        _CACHE["t"], _CACHE["ev"] = time.time(), ev
+        _CACHE["t"], _CACHE["ev"], _CACHE["state_mtime"] = time.time(), ev, sm
         return ev
 
 
