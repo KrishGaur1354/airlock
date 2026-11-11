@@ -127,7 +127,8 @@ def post(payload, api_key, timeout=TIMEOUT):
         return None
     req = urllib.request.Request(
         API_URL, json.dumps(payload).encode("utf-8"),
-        {"Content-Type": "application/json", "Authorization": "Bearer " + api_key})
+        {"Content-Type": "application/json", "Authorization": "Bearer " + api_key,
+         "User-Agent": "airlock/0.1"})  # default Python-urllib UA is blocked upstream (HTTP 403, code 1010)
     try:
         with urllib.request.urlopen(req, timeout=timeout) as r:
             body = r.read().decode("utf-8")

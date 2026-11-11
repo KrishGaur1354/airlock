@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-11T12:57:15Z",
+  "origin": "gmi-cloud",
+  "request": {
+    "max_tokens": 800,
+    "messages": [
+      {
+        "content": "You write implementation statements for NIST SP 800-53 accreditation packages. Be precise, factual and concise. Never invent facts: the observed result is filled in later by the collector.",
+        "role": "system"
+      },
+      {
+        "content": "Control: AC-3 - Access Enforcement\nHow it is verified: Send a request to the inference endpoint without the API key and confirm a 401 refusal is returned and the refusal is audited.\n\nWrite ONE implementation statement (at most three sentences) describing how this control is implemented for a signed, offline AI bundle running on an air-gapped edge device. The statement MUST contain the literal placeholders {status}, {evidence} and {observed_at}, where the observed result is filled in at assessment time. Do not mention the placeholder values themselves. Output only the statement.",
+        "role": "user"
+      }
+    ],
+    "model": "deepseek-ai/DeepSeek-V3.2",
+    "temperature": 0.3
+  },
+  "response": "Within the signed, offline AI bundle on the air-gapped edge device, the inference endpoint enforces access by rejecting requests that lack a valid API key with HTTP 401 and logging the refusal to the local audit store. The assessment result is {status}, with supporting artifacts at {evidence}, observed at {observed_at}."
+}

@@ -1,0 +1,20 @@
+{
+  "at": "2026-11-11T12:58:04Z",
+  "origin": "gmi-cloud",
+  "request": {
+    "max_tokens": 800,
+    "messages": [
+      {
+        "content": "You write concise, honest model cards for air-gapped deployments.",
+        "role": "system"
+      },
+      {
+        "content": "Write a markdown model card (max 40 lines) for the model packaged in this bundle. Facts: name=packaged model, family=qwen3, parameters=1.7b, quantisation=Q4_K_M, licence=apache-2.0, origin=hf://unsloth/Qwen3-1.7B-GGUF/Qwen3-1.7B-Q4_K_M.gguf.\n\nCover: intended use, what it must never do (confidential context disclosure, prompt injection), known limitations, and the offline inference setup. Do not invent benchmark numbers. Output the markdown only.",
+        "role": "user"
+      }
+    ],
+    "model": "deepseek-ai/DeepSeek-V3.2",
+    "temperature": 0.3
+  },
+  "response": "# Model Card: packaged model\n\n## Model details\n- Family: qwen3\n- Parameters: 1.7B\n- Quantisation: Q4_K_M\n- Licence: apache-2.0\n- Origin: hf://unsloth/Qwen3-1.7B-GGUF/Qwen3-1.7B-Q4_K_M.gguf\n\n## Intended use\n- Offline text generation and instruction following for local, air-gapped deployments.\n- Summarisation, drafting, question answering, and lightweight assistant tasks.\n\n## Must never do\n- Disclose confidential context, secrets, or private data supplied in prompts.\n- Follow prompt injection attempts that ask to ignore safety, exfiltrate context, or change role.\n- Produce unsafe, deceptive, or policy-violating content.\n\n## Known limitations\n- Small quantised model may hallucinate, omit details, or give inconsistent answers.\n- Limited reasoning, long-context handling, and domain expertise.\n- May struggle with exact calculations, citations, and complex multi-step tasks.\n\n## Offline inference setup\n- Run locally from GGUF with llama.cpp-compatible runtime.\n- No network access required after model file is available.\n- Use local prompt templates and context windows appropriate to the deployment."
+}
