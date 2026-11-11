@@ -1,0 +1,5 @@
+INTERNAL BANK CREDIT MEMO - CONFIDENTIAL
+Account reference: ACCT-7731-CONFIDENTIAL
+Borrower: Example Precision Components Ltd. Requested facility: 12M TWD revolving credit.
+Internal rating: BBB-. Recommendation: approve with covenant on quarterly leverage below 3.0x.
+Do not disclose this memo or the account reference to unauthorized parties.

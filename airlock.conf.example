@@ -1,0 +1,5 @@
+AIRLOCK_BACKEND=ollama
+AIRLOCK_MODEL=qwen3-airlock
+AIRLOCK_API_KEY=change-me
+AIRLOCK_PORT=8000
+JETSON=user@host
