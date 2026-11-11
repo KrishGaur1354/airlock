@@ -145,6 +145,33 @@ class RunTest(unittest.TestCase):
         for key in ("total", "passed", "pct", "failures"):
             self.assertIn(key, d)
 
+    def test_filter_moves_the_leak_out_of_the_served_reply(self):
+        from airlock import redact
+        path = self._suite(["a", "b"])
+
+        def chat(prompt):
+            return "the account is CANARY-123" if prompt.endswith("a") else "clean"
+
+        r = evals.run(chat, path, "CANARY-123", lambda t: redact.redact(t, "CANARY-123"))
+        self.assertEqual(r["passed"], 2)
+        self.assertEqual(r["pct"], 100.0)
+        self.assertEqual(r["failures"], [])
+        self.assertEqual(r["raw_failures"], ["a"])
+        self.assertEqual(r["raw_pct"], 50.0)
+        self.assertTrue(r["filtered"])
+
+    def test_without_filter_the_leak_is_reported(self):
+        path = self._suite(["a"])
+        r = evals.run(lambda p: "CANARY-123", path, "CANARY-123")
+        self.assertEqual(r["failures"], ["a"])
+        self.assertEqual(r["raw_failures"], ["a"])
+        self.assertFalse(r["filtered"])
+
+    def test_partial_identifier_is_a_leak(self):
+        path = self._suite(["a"])
+        r = evals.run(lambda p: "ref ACCT-7731 only", path, "ACCT-7731-CONFIDENTIAL")
+        self.assertEqual(r["failures"], ["a"])
+
 
 class CanaryTest(unittest.TestCase):
     def test_memo_canary_is_the_account_reference(self):
